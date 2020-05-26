@@ -40,8 +40,12 @@ public class TicTacToe {
         BufferedReader fromClient = new BufferedReader(new InputStreamReader(client.getInputStream()));
         while (true) {
             System.out.println(printBoard());
-            if(isOver()){
-                System.out.println( isHostTurn ? "You Lose" : "You Won");
+            if (isOver()) {
+                System.out.println(isHostTurn ? "You Lose" : "You Won");
+                break;
+            }
+            if (isDraw()){
+                System.out.println("It is draw");
                 break;
             }
             if (isHostTurn) {
@@ -63,8 +67,12 @@ public class TicTacToe {
         BufferedReader fromHost = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         while (true) {
             System.out.println(printBoard());
-            if(isOver()){
-                System.out.println( isHostTurn ? "You Won" : "You Lose");
+            if (isOver()) {
+                System.out.println(isHostTurn ? "You Won" : "You Lose");
+                break;
+            }
+            if (isDraw()){
+                System.out.println("It is draw");
                 break;
             }
             if (!isHostTurn) {
@@ -99,16 +107,17 @@ public class TicTacToe {
     public void getMove() {
         String move = console.readLine("Type your move with rowXcol format (example: 3x1)");
         Matcher validMoveMatcher = this.isValidMove.matcher(move);
-        while( true ){
-            if(validMoveMatcher.matches()){
-                if(this.board[move.charAt(0) -49][move.charAt(2)-49] == '\u0000'){
+        while (true) {
+            if (validMoveMatcher.matches()) {
+                if (this.board[move.charAt(0) - 49][move.charAt(2) - 49] == '\u0000') {
                     break;
                 }
             }
             move = console.readLine("Wrong format or field is already occupied. (example: 3x1)");
             validMoveMatcher = isValidMove.matcher(move);
-        };
-        this.move(move.charAt(0) - 48,move.charAt(2) - 48);
+        }
+        ;
+        this.move(move.charAt(0) - 48, move.charAt(2) - 48);
     }
 
     public void move(int row, int col) {
@@ -127,35 +136,46 @@ public class TicTacToe {
         };
     }
 
-    public boolean checkRows(){
-        for(int row = 0; row< 3; row++){
-            if( this.board[row][0] == this.board[row][1] && this.board[row][1] == this.board[row][2] && this.board[row][0] != '\u0000' ){
+    public boolean checkRows() {
+        for (int row = 0; row < 3; row++) {
+            if (this.board[row][0] == this.board[row][1] && this.board[row][1] == this.board[row][2] && this.board[row][0] != '\u0000') {
                 return true;
             }
         }
         return false;
     }
 
-    public boolean checkCols(){
-        for(int col = 0; col< 3; col++){
-            if( this.board[0][col] == this.board[1][col] && this.board[1][col] == this.board[2][col] && this.board[0][col] != '\u0000' ){
+    public boolean checkCols() {
+        for (int col = 0; col < 3; col++) {
+            if (this.board[0][col] == this.board[1][col] && this.board[1][col] == this.board[2][col] && this.board[0][col] != '\u0000') {
                 return true;
             }
         }
         return false;
     }
 
-    public boolean checkDiagonal(){
-        if( this.board[0][0] == this.board[1][1] && this.board[1][1] == this.board[2][2] && this.board[0][0] != '\u0000'){
+    public boolean checkDiagonal() {
+        if (this.board[0][0] == this.board[1][1] && this.board[1][1] == this.board[2][2] && this.board[0][0] != '\u0000') {
             return true;
         }
-        if( this.board[2][0] == this.board[1][1] && this.board[1][1] == this.board[0][2] && this.board[2][0] != '\u0000'){
+        if (this.board[2][0] == this.board[1][1] && this.board[1][1] == this.board[0][2] && this.board[2][0] != '\u0000') {
             return true;
         }
         return false;
     }
 
-    public boolean isOver(){
+    public boolean isDraw() {
+        for (int row = 0; row < 3; row++) {
+            for (int col = 0; col < 3; col++){
+                if(this.board[row][col] == '\u0000'){
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    public boolean isOver() {
         return checkCols() || checkCols() || checkDiagonal();
     }
 
