@@ -5,12 +5,19 @@ import java.util.regex.*;
 public class TicTacToe {
     private final int PORT = 9999;
     private Console console = System.console();
-    Pattern movePattern = Pattern.compile("^\\[move\\]([123])x([123])"); //find [move]nxm
-    Pattern isValidMove = Pattern.compile("^[123]x[123]$"); //find nxm
+    private String userName;
+    private boolean isHostTurn = true;
+    char[][] board = {
+            {'\u0000', '\u0000', '\u0000'},
+            {'\u0000', '\u0000', '\u0000'},
+            {'\u0000', '\u0000', '\u0000'}
+    };
+
+    private Pattern isValidMove = Pattern.compile("^[123]x[123]$"); //find nxm
 
     public static void main(String[] args) throws IOException {
         TicTacToe game = new TicTacToe();
-        String userName = game.console.readLine("Enter your username : ");
+        game.userName = game.console.readLine("Enter your username : ");
         System.out.println("( 1 ) Host a new game");
         System.out.println("( 2 ) Join an existing game");
         System.out.println("Type anything else to exit.");
@@ -25,7 +32,6 @@ public class TicTacToe {
     }
 
     public void createGame() throws IOException {
-        char[][] board = new char[3][3];
         boolean turn = true;
         String message = "[hostTurn]";
         String currentMove;
@@ -36,15 +42,15 @@ public class TicTacToe {
         PrintWriter toClient = new PrintWriter(client.getOutputStream(), true);
         BufferedReader fromClient = new BufferedReader(new InputStreamReader(client.getInputStream()));
         while (true) {
-            toClient.print(message);
-            if(message.equals("[hostTurn]")){
-                currentMove = getMove();
-                move(currentMove.charAt(0),currentMove.charAt(2),"host");
-            }else if(message.equals("[clientTurn]")){
-                System.out.println("Waiting opponent to move.");
-                System.out.println(fromClient.readLine());
+            System.out.println(printBoard());
+            if (isHostTurn) {
+                getMove();
+                toClient.println(this.cBoardtoString());
+            } else {
+                System.out.println("Waiting opponent to move");
+                this.board = stringToCboard(fromClient.readLine());
             }
-            message = message.equals("[hostTurn]") ? "[clientTurn]" : "[hostTurn]";
+            isHostTurn = !isHostTurn;
         }
     }
 
@@ -56,25 +62,28 @@ public class TicTacToe {
         PrintWriter toHost = new PrintWriter(socket.getOutputStream(), true);
         BufferedReader fromHost = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         while (true) {
-            if(fromHost.readLine().equals("[hostTurn]")){
-                System.out.println("Waiting opponent to move.");
-            }else if(fromHost.readLine().equals("[clientTurn]")){
-                currentMove = getMove();
-                toHost.println("[move]"+currentMove);
+            System.out.println(printBoard());
+            if (!isHostTurn) {
+                getMove();
+                toHost.println(this.cBoardtoString());
+            } else {
+                System.out.println("Waiting opponent to move");
+                this.board = stringToCboard(fromHost.readLine());
             }
+            isHostTurn = !isHostTurn;
         }
     }
 
-    public String printBoard(char[][] board) {
+    public String printBoard() {
         String boardOutput = "   -------------\n";
         boardOutput += "   | 1 | 2 | 3 |\n";
         for (int row = 0; row < 3; row++) {
             boardOutput += "----------------\n " + (row + 1) + " |";
             for (int col = 0; col < 3; col++) {
-                if(board[row][col] == (char) 0){
+                if (board[row][col] == '\u0000') {
                     boardOutput += "   |";
-                }else{
-                    boardOutput += " " + board[row][col] + " |";
+                } else {
+                    boardOutput += " " + String.valueOf(board[row][col]) + " |";
                 }
             }
             boardOutput += "\n";
@@ -83,17 +92,34 @@ public class TicTacToe {
         return boardOutput;
     }
 
-    public String getMove(){
-        String move = console.readLine("Type your move with rowxcol format (example: 3x1)");
-        Matcher validMoveMatcher = isValidMove.matcher(move);
-        while (!validMoveMatcher.matches()){
-            move = console.readLine("Wrong format! Type your move with rowxcol format (example: 3x1)");
+    public void getMove() {
+        String move = console.readLine("Type your move with rowXcol format (example: 3x1)");
+        Matcher validMoveMatcher = this.isValidMove.matcher(move);
+        while( true ){
+            if(this.board[move.charAt(0) -49][move.charAt(2)-49] == '\u0000'){
+                if(validMoveMatcher.matches()){
+                    break;
+                }
+            }
+            move = console.readLine("Wrong format or field is already occupied. (example: 3x1)");
             validMoveMatcher = isValidMove.matcher(move);
-        }
-        return move;
+        };
+        this.move(move.charAt(0) - 48,move.charAt(2) - 48);
     }
 
-    public void move(int row,int col, String player){
+    public void move(int row, int col) {
+        board[row - 1][col - 1] = isHostTurn ? 'X' : 'O';
+    }
 
+    public String cBoardtoString() {
+        return new StringBuilder().append(this.board[0]).append(this.board[1]).append(this.board[2]).toString();
+    }
+
+    public char[][] stringToCboard(String text) {
+        return new char[][]{
+                {text.charAt(0), text.charAt(1), text.charAt(2)},
+                {text.charAt(3), text.charAt(4), text.charAt(5)},
+                {text.charAt(6), text.charAt(7), text.charAt(8)}
+        };
     }
 }
