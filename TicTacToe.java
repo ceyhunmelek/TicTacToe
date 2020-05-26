@@ -36,15 +36,6 @@ public class TicTacToe {
         PrintWriter toClient = new PrintWriter(client.getOutputStream(), true);
         BufferedReader fromClient = new BufferedReader(new InputStreamReader(client.getInputStream()));
         while (true) {
-            toClient.print(message);
-            if(message.equals("[hostTurn]")){
-                currentMove = getMove();
-                move(currentMove.charAt(0),currentMove.charAt(2),"host");
-            }else if(message.equals("[clientTurn]")){
-                System.out.println("Waiting opponent to move.");
-                System.out.println(fromClient.readLine());
-            }
-            message = message.equals("[hostTurn]") ? "[clientTurn]" : "[hostTurn]";
         }
     }
 
@@ -56,12 +47,6 @@ public class TicTacToe {
         PrintWriter toHost = new PrintWriter(socket.getOutputStream(), true);
         BufferedReader fromHost = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         while (true) {
-            if(fromHost.readLine().equals("[hostTurn]")){
-                System.out.println("Waiting opponent to move.");
-            }else if(fromHost.readLine().equals("[clientTurn]")){
-                currentMove = getMove();
-                toHost.println("[move]"+currentMove);
-            }
         }
     }
 
