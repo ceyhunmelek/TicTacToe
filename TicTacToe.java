@@ -176,7 +176,7 @@ public class TicTacToe {
     }
 
     public boolean isOver() {
-        return checkCols() || checkCols() || checkDiagonal();
+        return checkRows() || checkCols() || checkDiagonal();
     }
 
 }
